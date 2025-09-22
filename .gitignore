@@ -1,0 +1,12 @@
+# Dependency directories
+node_modules/
+private/
+
+# Optional: Logs and debugging files
+logs/
+*.log
+.env
+
+# OS generated files
+.DS_Store
+Thumbs.db
