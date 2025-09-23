@@ -29,7 +29,7 @@ module.exports = (sequelize) => {
             allowNull: false,
         },
         wallet_balance: {
-            type: DataTypes.FLOAT,
+            type: DataTypes.DECIMAL(15, 2), 
             allowNull: false,
             defaultValue: 0.00
         },
