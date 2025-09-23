@@ -1,9 +1,9 @@
-require('dotenv').config();
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
+const process = require('process');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.js')[env];
@@ -11,22 +11,24 @@ const db = {};
 
 let sequelize;
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
+  sequelize = new Sequelize(process.env[config.use_env_variable], {
     dialect: 'postgres',
-    define: { schema: 'public' },
-    logging: false,
-    dialectOptions: env === 'production'
-      ? { ssl: { require: false } }
-      : {}
+    ssl: false,
   });
 } else {
-  sequelize = new Sequelize(
-    config.database,
-    config.username,
-    config.password,
-    config
-  );
+  sequelize = new Sequelize(config.database, config.username, config.password, {
+     host: config.host,
+    dialect: 'postgres',
+    port: config.port || 5432,
+    dialectOptions: isDevelopment
+      ? {}
+      : {
+        ssl: false,
+      },
+  });
 }
 
 
@@ -41,7 +43,7 @@ fs
     );
   })
   .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize);
+    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
     db[model.name] = model;
   });
 
@@ -53,7 +55,5 @@ Object.keys(db).forEach(modelName => {
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
-
-
 
 module.exports = db;
