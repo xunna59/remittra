@@ -7,7 +7,7 @@ const transactionController = {
   // get authenticated user transaction history
   getUserTransactions: async (req, res, next) => {
     try {
-      const userId = req.user.id; // middleware should attach user
+      const userId = req.user.id; 
 
       const user = await User.findByPk(userId);
       if (!user) {
@@ -45,9 +45,10 @@ const transactionController = {
     }
   },
 
-  // Credit wallet
+  // Credit user wallet
   creditUserWallet: async (req, res, next) => {
-    
+
+      // validate request
      const errors = validationResult(req);
        if (!errors.isEmpty()) {
             return res.status(400).json({
@@ -61,7 +62,6 @@ const transactionController = {
     
     try {
 
-
       const { email, amount } = req.body;
 
       // check if user exists
@@ -73,6 +73,7 @@ const transactionController = {
         });
       }
 
+      // validate user balance
       const currentBalance = existingUser.wallet_balance || 0;
       const newBalance = parseFloat(currentBalance) + parseFloat(amount);
 
@@ -96,9 +97,10 @@ const transactionController = {
     }
   },
 
-  // Debit wallet
+  // Debit user wallet
   debitUserWallet: async (req, res, next) => {
-
+     
+    // validate request
        const errors = validationResult(req);
        if (!errors.isEmpty()) {
             return res.status(400).json({
@@ -124,6 +126,7 @@ const transactionController = {
         });
       }
 
+      // validate user balance
       const currentBalance = existingUser.wallet_balance || 0;
       if (currentBalance < amount) {
         return res.status(400).json({
