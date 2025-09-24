@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const { sequelize } = require('./src/models');
 const errorHandler = require('./src/middleware/errorHandler');
 const cors = require('cors');
-// const apiRoutes = require('./src/routes/apiRoutes');
+const apiRoutes = require('./src/routes/apiRoutes');
 
 
 
@@ -43,7 +43,7 @@ app.use(
 
 
 // Routes
-//app.use('/api', apiRoutes);
+app.use('/api', apiRoutes);
 
 
 

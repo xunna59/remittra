@@ -25,8 +25,8 @@ const loginLimiter = rateLimit({
 router.post('/auth/register',
 
     [
-        body('firstname').notEmpty().withMessage('First Name is required.'),
-        body('lastname').notEmpty().withMessage('Last Name is required.'),
+        body('firstName').notEmpty().withMessage('First Name is required.'),
+        body('lastName').notEmpty().withMessage('Last Name is required.'),
         body('email').isEmail().withMessage('Email is required.'),
         body('password').notEmpty().withMessage('Password is required.'),
     ],
@@ -43,34 +43,38 @@ router.post('/auth/login',
     userController.loginUser
 );
 
+// fetch user profile
+router.get('/user/fetch-profile', 
+    authenticateUser,
+    userController.getUserProfile
+);
+
 
 // credit user route
 
-router.post('transaction/credit', 
-
+router.post('/transaction/credit', 
     [
         body("email").isEmail().withMessage("Valid email is required"),
-        body("amount").isFloat({ gt: 0 }).withMessage("Amount must be a positive number"),
+        body("amount").isFloat({ gt: 0 }).withMessage("Amount must be greater than 0"),
     ],
-
     transactionController.creditUserWallet
-
 );
 
 // debit user route
-router.post('transaction/debit', 
-
+router.post('/transaction/debit', 
     [
         body("email").isEmail().withMessage("Valid email is required"),
-        body("amount").isFloat({ gt: 0 }).withMessage("Amount must be a positive number"),
+        body("amount").isFloat({ gt: 0 }).withMessage("Amount must be greater than 0"),
     ],
-
     transactionController.debitUserWallet
-
 );
 
+// get authenticated user transactions
+router.get('/user/transactions', 
+    authenticateUser,
+    transactionController.getUserTransactions
+);
 
-ß
 
 
 module.exports = router;

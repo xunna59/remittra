@@ -1,18 +1,68 @@
 const { Transaction, User } = require('../models');
+const { validationResult } = require('express-validator');
+
 
 const transactionController = {
 
-  // Credit wallet
-  creditUserWallet: async (req, res, next) => {
+  // get authenticated user transaction history
+  getUserTransactions: async (req, res, next) => {
     try {
-      const { email, amount } = req.body;
+      const userId = req.user.id; // middleware should attach user
 
-      if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-        return res.status(400).json({
+      const user = await User.findByPk(userId);
+      if (!user) {
+        return res.status(404).json({
           success: false,
-          message: "Invalid amount.",
+          message: "User not found.",
         });
       }
+
+      // get pagination params from query
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const offset = (page - 1) * limit;
+
+      const { count, rows: transactions } = await Transaction.findAndCountAll({
+        where: { user_id: userId },
+        order: [['created_at', 'DESC']],
+        limit,
+        offset,
+      });
+
+      return res.status(200).json({
+        success: true,
+        transactions,
+        pagination: {
+          total: count,
+          page,
+          limit,
+          totalPages: Math.ceil(count / limit),
+        },
+        
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // Credit wallet
+  creditUserWallet: async (req, res, next) => {
+    
+     const errors = validationResult(req);
+       if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array().map(err => ({
+                    msg: err.msg,
+                    key: err.path,
+                })),
+            });
+        }
+    
+    try {
+
+
+      const { email, amount } = req.body;
 
       // check if user exists
       const existingUser = await User.findOne({ where: { email } });
@@ -33,30 +83,37 @@ const transactionController = {
       // record transaction
       await Transaction.create({
         user_id: existingUser.id,
-        type: "credit",
+        transaction_type: "credit",
         amount,
       });
 
       return res.status(200).json({
         success: true,
-        balance: newBalance,
+        message: `#${amount} was credited to your account`,
       });
     } catch (err) {
       next(err);
     }
   },
 
-  // ✅ Debit wallet
+  // Debit wallet
   debitUserWallet: async (req, res, next) => {
-    try {
-      const { email, amount } = req.body;
 
-      if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid amount.",
-        });
-      }
+       const errors = validationResult(req);
+       if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array().map(err => ({
+                    msg: err.msg,
+                    key: err.path,
+                })),
+            });
+        }
+
+    try {
+
+
+      const { email, amount } = req.body;
 
       // check if user exists
       const existingUser = await User.findOne({ where: { email } });
@@ -84,13 +141,14 @@ const transactionController = {
       // record transaction
       await Transaction.create({
         user_id: existingUser.id,
-        type: "debit",
+        transaction_type: "debit",
         amount,
       });
 
       return res.status(200).json({
         success: true,
-        balance: newBalance,
+        message: `#${amount} was debited from your account`,
+
       });
     } catch (err) {
       next(err);

@@ -19,7 +19,7 @@ const userController = {
         }
 
         try {
-            const { firstname, lastname, email, password, } = req.body;
+            const { firstName, lastName, email, password, } = req.body;
 
             const existingUser = await User.findOne({ where: { email } });
             if (existingUser) {
@@ -32,8 +32,8 @@ const userController = {
             const hashedPassword = await bcrypt.hash(password, 10);
 
             const user = await User.create({
-                firstname,
-                lastname,
+                firstName,
+                lastName,
                 email,
                 password: hashedPassword,
             });
@@ -45,7 +45,8 @@ const userController = {
                 success: true,
                 message: "User created successfully",
                 user: {
-                    name: user.name,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
                     email: user.email,
 
                 },
@@ -114,7 +115,7 @@ const userController = {
 
             const user = await User.findOne({
                 where: { id: userId },
-                attributes: ['firstname', 'lastname', 'email', 'wallet_balance'],
+                attributes: ['firstName', 'lastName', 'email', 'wallet_balance'],
             });
 
             if (!user) {
