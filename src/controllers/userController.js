@@ -5,7 +5,10 @@ const { validationResult } = require('express-validator');
 
 const userController = {
 
+    // create new user
     createUser: async (req, res, next) => {
+
+         // validate request
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
@@ -21,6 +24,7 @@ const userController = {
         try {
             const { firstName, lastName, email, password, } = req.body;
 
+            // check if user with email exists
             const existingUser = await User.findOne({ where: { email } });
             if (existingUser) {
                 return res.status(409).json({
@@ -30,7 +34,8 @@ const userController = {
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
-
+            
+            // create user account 
             const user = await User.create({
                 firstName,
                 lastName,
@@ -38,6 +43,7 @@ const userController = {
                 password: hashedPassword,
             });
 
+            // sign and generate login token
             const payload = { id: user.id, email: user.email, };
             const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.TOKEN_EXPIRES_IN });
 
@@ -58,7 +64,10 @@ const userController = {
         }
     },
 
+    // authenticate and login user
     loginUser: async (req, res, next) => {
+
+        // validate request
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({
@@ -72,7 +81,7 @@ const userController = {
         try {
             const { email, password } = req.body;
 
-
+            // validate login credentials
             const user = await User.findOne({ where: { email } });
             if (!user) {
                 return res.status(400).json({ success: false, message: "Invalid credentials" });
@@ -84,7 +93,7 @@ const userController = {
                 return res.status(400).json({ success: false, message: "Invalid credentials" });
             }
 
-
+            
             const payload = { id: user.id, email: user.email, };
 
             const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.TOKEN_EXPIRES_IN });
@@ -102,7 +111,7 @@ const userController = {
         }
     },
 
-
+    // fetch user profile
     getUserProfile: async (req, res, next) => {
 
         try {
