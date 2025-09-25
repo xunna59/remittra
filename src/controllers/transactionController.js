@@ -4,6 +4,42 @@ const { validationResult } = require('express-validator');
 
 const transactionController = {
 
+
+    // get all  transaction history
+  getTransactions: async (req, res, next) => {
+    try {
+     
+
+      // get pagination params from query
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const offset = (page - 1) * limit;
+
+      const { count, rows: transactions } = await Transaction.findAndCountAll({
+      
+        order: [['created_at', 'DESC']],
+        limit,
+        offset,
+      });
+
+      return res.status(200).json({
+        success: true,
+        transactions,
+        pagination: {
+          total: count,
+          page,
+          limit,
+          totalPages: Math.ceil(count / limit),
+        },
+        
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+
+
   // get authenticated user transaction history
   getUserTransactions: async (req, res, next) => {
     try {

@@ -76,5 +76,9 @@ router.get('/user/transactions',
 );
 
 
+// get all users transaction history
+router.get('/transactions', 
+    transactionController.getTransactions
+);
 
 module.exports = router;
